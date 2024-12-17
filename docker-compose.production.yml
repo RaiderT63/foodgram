@@ -7,7 +7,7 @@ services:
       - ../frontend/:/app/result_build/
 
   gateway:
-    image: raidert/foodgram_gateway
+    image: raider63/foodgram_gateway
     env_file: .env
     ports:
       - 8080:80
