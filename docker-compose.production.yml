@@ -1,12 +1,37 @@
 version: '3.3'
 services:
+  db:
+    container_name: foodgram-db
+    image: postgres:13
+    env_file:
+    - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  backend:
+    container_name: foodgram-backend
+    image: raider63/foodgram_backend:latest
+    command: >
+      sh -c 'python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000'
+    volumes:
+      - static:backend_static/
+      - media:app/media/
+    env_file:
+      - .env
+    depends_on:
+      - db
+
   frontend:
     container_name: foodgram-frontend
     image: raider63/foodgram_frontend:latest
+    command: cp -r /app/build/. /frontend_static/
     volumes:
-      - ../frontend/:/app/result_build/
+      - static:/frontend_static
 
   gateway:
+    container_name: foodgram-gateway
     image: raider63/foodgram_gateway
     env_file: .env
     ports:
@@ -17,29 +42,6 @@ services:
     depends_on:
       - backend
       - frontend
-
-  db:
-      container_name: foodgram-db
-      image: postgres:13
-      env_file:
-      - .env
-      volumes:
-        - postgres_data:/var/lib/postgresql/data/
-
-  backend:
-    container_name: foodgram-backend
-    image: raider63/foodgram_backend:latest
-    command: >
-      sh -c 'python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000'
-    volumes:
-      - static:static/
-      - media:app/media/
-    env_file:
-      - .env
-    depends_on:
-      - db
 
 volumes:
   postgres_data:
