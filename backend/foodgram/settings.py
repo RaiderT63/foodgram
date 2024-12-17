@@ -12,7 +12,7 @@ SECRET_KEY = 'django-insecure-t1m1t3+433dm%^t^6kikk4lc-ezvg-rkqc5eup-z=866xb)6%)
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['foodgram_db'])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
