@@ -29,7 +29,7 @@ from .serializers import (
     UserRegisterSerializer,
     AvatarSerializer,
     PasswordSerializer,
-    IngredientSerializer,
+    IngredientItemSerializer,
 )
 
 from recipes.models import (
@@ -67,7 +67,7 @@ class IngredientFilter(FilterSet):
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
-    serializer_class = IngredientSerializer
+    serializer_class = IngredientItemSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
 
