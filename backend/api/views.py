@@ -29,6 +29,7 @@ from .serializers import (
     UserRegisterSerializer,
     AvatarSerializer,
     PasswordSerializer,
+    IngredientSerializer,
 )
 
 from recipes.models import (
@@ -66,7 +67,7 @@ class IngredientFilter(FilterSet):
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
-    serializer_class = RecipeSerializer
+    serializer_class = IngredientSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
 
@@ -78,7 +79,7 @@ class RecipeFilter(FilterSet):
         queryset=Category.objects.all()
     )
     author = ModelChoiceFilter(
-        field_name='author',
+        field_name='creator',
         queryset=User.objects.all()
     )
     is_in_shopping_cart = BooleanFilter(method='filter_is_in_shopping_cart')
@@ -193,7 +194,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             .values(
                 name=F('recipe__recipeingredient__ingredient__name'),
                 unit=F(
-                    'recipe__recipeingredient__ingredient__measurement_unit'
+                    'recipe__recipeingredient__ingredient__'
+                    'unit_of_measurement'
                 )
             )
             .annotate(amount=Sum('recipe__recipeingredient__quantity'))
@@ -251,8 +253,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'avatar': avatar_url}, status=status.HTTP_200_OK)
         if request.method == 'DELETE':
             user = request.user
-            if user.avatar:
-                user.avatar.delete(save=True)
+            if not user.avatar:
+                return Response(
+                    {'error': 'Аватар отсутствует'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            user.avatar.delete(save=True)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
