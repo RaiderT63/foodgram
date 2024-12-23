@@ -10,7 +10,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data/
   backend:
-    image: raider63/foodgram_backend
+    build: ./backend/
     env_file: .env
     volumes:
       - static:/app/static/
@@ -18,11 +18,11 @@ services:
     depends_on:
       - db
   frontend:
-    image: raider63/foodgram_frontend
+    build: ./frontend/
     volumes:
       - static:/app/result_build/build/
   gateway:
-    image: raider63/foodgram_gateway
+    build: ./gateway/
     ports:
       - 8000:80
     volumes:
