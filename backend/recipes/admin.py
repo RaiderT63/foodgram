@@ -13,11 +13,11 @@ from .models import (
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = (
-        'title',
+        'name',
         'slug',
     )
     search_fields = (
-        'title',
+        'name',
     )
 
 
@@ -25,7 +25,7 @@ class CategoryAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
         'name',
-        'unit_of_measurement',
+        'measurement_unit',
     )
     search_fields = (
         'name',
@@ -35,19 +35,19 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
-        'title',
-        'creator',
+        'name',
+        'author',
         'get_favorite_count',
     )
     search_fields = (
-        'title',
+        'name',
         'creator__username',
     )
     list_filter = (
-        'categories',
+        'tags',
     )
     filter_horizontal = (
-        'categories',
+        'tags',
     )
 
     def get_favorite_count(self, obj):
@@ -58,11 +58,16 @@ class RecipeAdmin(admin.ModelAdmin):
 @admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = (
+        'recipe',
+        'amount',
         'ingredient',
-        'quantity',
     )
     search_fields = (
         'ingredient__name',
+    )
+    list_filter = (
+        'recipe',
+        'ingredient',
     )
 
 

@@ -1,29 +1,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
-from api.views import (
-    CategoryViewSet,
-    IngredientViewSet,
-    RecipeViewSet,
-)
+from api.views import RecipeViewSet
 
 router = DefaultRouter()
-router.register(
-    r'categories',
-    CategoryViewSet,
-    basename='category'
-)
-router.register(
-    r'ingredients',
-    IngredientViewSet,
-    basename='ingredient'
-)
-router.register(
-    r'recipes',
-    RecipeViewSet,
-    basename='recipe'
-)
+router.register('', RecipeViewSet, basename='recipes')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path(
+        '<int:pk>/get-link/',
+        RecipeViewSet.as_view({'get': 'get_short_link'}),
+        name='recipe-short-link'
+    ),
 ]

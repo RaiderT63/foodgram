@@ -6,10 +6,6 @@ from rest_framework.permissions import (
 
 
 class IsRecipeAuthorOrReadOnly(BasePermission):
-    """
-    Разрешение на чтение для всех,
-    но изменение и удаление только для автора рецепта.
-    """
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
@@ -18,10 +14,6 @@ class IsRecipeAuthorOrReadOnly(BasePermission):
 
 
 class IsProfileOwnerOrReadOnly(IsAuthenticated):
-    """
-    Разрешение на чтение для всех аутентифицированных пользователей,
-    изменение и удаление только для владельца профиля.
-    """
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
