@@ -24,4 +24,4 @@ class Command(BaseCommand):
                 )
             ]
             Ingredient.objects.bulk_create(ingredients)
-            print('Продукты загружены')
+            self.stdout.write(self.style.SUCCESS('Data imported successfully'))

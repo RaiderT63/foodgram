@@ -24,4 +24,4 @@ class Command(BaseCommand):
                 )
             ]
             Category.objects.bulk_create(categories)
-            print('Категории загружены')
+            self.stdout.write(self.style.SUCCESS('Data imported successfully'))

@@ -41,11 +41,11 @@ from recipes.models import (
     ShoppingItem,
     RecipeIngredient,
 )
-from core.paginations import (
+from .paginations import (
     CustomUserPagination,
     CustomRecipePagination,
 )
-from core.permissions import (
+from .permissions import (
     IsRecipeAuthorOrReadOnly,
 )
 from users.models import UserSubscription

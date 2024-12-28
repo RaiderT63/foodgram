@@ -1,11 +1,7 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-
-from core.constants import (
-    MIN_VALUE_LIMITS,
-    MAX_VALUE_LIMITS,
-)
 
 User = get_user_model()
 
@@ -45,7 +41,6 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        db_table = 'ingredient'
 
     def __str__(self):
         return f'{self.name} ({self.measurement_unit})'
@@ -55,7 +50,6 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipes',
         verbose_name='Создатель'
     )
     name = models.CharField(
@@ -72,27 +66,25 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
-        related_name='recipes',
         verbose_name='Ингредиенты'
     )
     tags = models.ManyToManyField(
         Category,
-        related_name='recipes_with_category',
         verbose_name='Теги'
     )
     cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления (минуты)',
         validators=[
-            MinValueValidator(MIN_VALUE_LIMITS),
-            MaxValueValidator(MAX_VALUE_LIMITS),
+            MinValueValidator(settings.MIN_VALUE_LIMITS),
+            MaxValueValidator(settings.MAX_VALUE_LIMITS),
         ]
     )
 
     class Meta:
+        default_related_name = '%(class)ss'
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         ordering = ['-id']
-        db_table = 'recipe'
 
     def __str__(self):
         return self.title
@@ -151,7 +143,6 @@ class FavoriteRecipe(models.Model):
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
         unique_together = ('user', 'recipe')
-        db_table = 'favorite_recipe'
 
     def __str__(self):
         return (
@@ -178,7 +169,6 @@ class ShoppingItem(models.Model):
         verbose_name = 'Элемент списка покупок'
         verbose_name_plural = 'Список покупок'
         unique_together = ('user', 'recipe')
-        db_table = 'shopping_item'
 
     def __str__(self):
         return (

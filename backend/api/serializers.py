@@ -43,7 +43,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    name = serializers.CharField
 
     class Meta:
         model = Category
@@ -66,6 +65,7 @@ class IngredientItemSerializer(serializers.ModelSerializer):
 
 
 class RecipeFavoriteSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
@@ -84,9 +84,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField()
-    text = serializers.CharField()
-    cooking_time = serializers.IntegerField()
     tags = CategorySerializer(many=True, read_only=True)
     ingredients = serializers.SerializerMethodField()
     author = UserSerializer(read_only=True)
@@ -150,15 +147,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('ingredients', None)
-        if ingredients is not None:
-            instance.recipe_ingredients.all().delete()
-            for ingredient in ingredients:
-                RecipeIngredient.objects.create(
-                    recipe=instance,
-                    ingredient_id=ingredient['id'],
-                    amount=ingredient['amount']
-                )
+        ingredients = validated_data.pop('ingredients',)
+        instance.recipe_ingredients.all().delete()
+        for ingredient in ingredients:
+            RecipeIngredient.objects.create(
+                recipe=instance,
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount']
+            )
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -183,9 +179,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         many=True,
     )
     image = Base64ImageField()
-    name = serializers.CharField()
-    text = serializers.CharField()
-    cooking_time = serializers.IntegerField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -196,19 +189,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'is_favorited', 'is_in_shopping_cart',
             'name', 'image', 'text', 'cooking_time'
         )
-        read_only_fields = ('author', 'is_favorited', 'is_in_shopping_cart')
-
-    def get_is_favorited(self, obj):
-        user = self.context['request'].user
-        if user.is_anonymous:
-            return False
-        return obj.favorites.filter(user=user).exists()
-
-    def get_is_in_shopping_cart(self, obj):
-        user = self.context['request'].user
-        if user.is_anonymous:
-            return False
-        return obj.shopping_cart.filter(user=user).exists()
+        read_only_fields = ('author',)
 
     def validate(self, data):
         if not data.get('image'):
@@ -403,13 +384,13 @@ class AvatarSerializer(serializers.Serializer):
                 'Ошибка при обработке изображения'
             )
 
-    def save(self, **kwargs):
-        user = self.context['request'].user
-        user.avatar.save(
-            self.validated_data['avatar'].name,
-            self.validated_data['avatar'], save=True
-        )
-        return user.avatar.url
+    # def save(self, **kwargs):
+    #     user = self.context['request'].user
+    #     user.avatar.save(
+    #         self.validated_data['avatar'].name,
+    #         self.validated_data['avatar'], save=True
+    #     )
+    #     return user.avatar.url
 
 
 class PasswordSerializer(serializers.Serializer):
