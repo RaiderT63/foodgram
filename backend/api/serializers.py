@@ -384,13 +384,13 @@ class AvatarSerializer(serializers.Serializer):
                 'Ошибка при обработке изображения'
             )
 
-    # def save(self, **kwargs):
-    #     user = self.context['request'].user
-    #     user.avatar.save(
-    #         self.validated_data['avatar'].name,
-    #         self.validated_data['avatar'], save=True
-    #     )
-    #     return user.avatar.url
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.avatar.save(
+            self.validated_data['avatar'].name,
+            self.validated_data['avatar'], save=True
+        )
+        return user.avatar.url
 
 
 class PasswordSerializer(serializers.Serializer):
