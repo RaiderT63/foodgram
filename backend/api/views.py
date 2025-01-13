@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.db.models import Sum, Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
@@ -36,7 +36,7 @@ from recipes.models import (
     ShoppingItem,
     RecipeIngredient,
 )
-from .paginations import CustomRecipePagination, CustomUserPagination
+from .paginations import CustomPagination
 from .permissions import IsRecipeAuthorOrReadOnly
 from users.models import UserSubscription
 from .filters import IngredientFilter, RecipeFilter
@@ -62,7 +62,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsRecipeAuthorOrReadOnly]
-    pagination_class = CustomRecipePagination
+    pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
@@ -176,14 +176,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_short_link(self, request, pk=None):
-        recipe = self.get_object()
-        short_link = f"/r/{recipe.id}"
-        return Response({'short-link': short_link})
+        # recipe = self.get_object()
+        # short_link = f"/r/{recipe.id}"
+        return Response({'short-link': request.build_absolute_uri(
+            self.get_object().get_absolute_url()
+        )})
 
 
 class UserViewSet(DjoserUserViewSet):
     serializer_class = UserSerializer
-    pagination_class = CustomUserPagination
+    pagination_class = CustomPagination
 
     def get_permissions(self):
         if self.action in ['create', 'list', 'retrieve']:
@@ -217,24 +219,18 @@ class UserViewSet(DjoserUserViewSet):
         url_path='me/avatar'
     )
     def avatar(self, request):
-        if request.method == 'PUT':
-            serializer = AvatarSerializer(
-                data=request.data,
-                context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            avatar_url = serializer.save()
-            return Response({'avatar': avatar_url}, status=status.HTTP_200_OK)
-
+        user = request.user
         if request.method == 'DELETE':
-            user = request.user
-            if not user.avatar:
-                return Response(
-                    {'error': 'Аватар отсутствует'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
             user.avatar.delete(save=True)
             return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = AvatarSerializer(data=request.data,)
+        serializer.is_valid(raise_exception=True)
+        user.avatar = serializer.validated_data['avatar']
+        user.save()
+        return Response(
+            AvatarSerializer(user).data,
+            status=status.HTTP_200_OK
+        )
 
     @action(
         detail=False,
@@ -310,3 +306,7 @@ class UserViewSet(DjoserUserViewSet):
             context={'request': request}
         )
         return Response(serializer.data)
+
+
+def short_link_view(request, pk):
+    return redirect('api:recipes-detail', pk=pk)

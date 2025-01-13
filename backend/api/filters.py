@@ -6,6 +6,7 @@ from django_filters.rest_framework import (
     BooleanFilter
 )
 from django.contrib.auth import get_user_model
+
 from recipes.models import Recipe, Category, Ingredient
 
 User = get_user_model()

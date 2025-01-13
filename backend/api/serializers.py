@@ -191,20 +191,18 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
         return data
 
     def _handle_tags_and_ingredients(self, recipe, tags, ingredients):
-        if tags is not None:
-            recipe.tags.set(tags)
+        recipe.tags.set(tags)
 
-        if ingredients is not None:
-            RecipeIngredient.objects.filter(recipe=recipe).delete()
-            recipe_ingredients = [
-                RecipeIngredient(
-                    recipe=recipe,
-                    ingredient_id=ingredient['id'],
-                    amount=ingredient['amount']
-                )
-                for ingredient in ingredients
-            ]
-            RecipeIngredient.objects.bulk_create(recipe_ingredients)
+        RecipeIngredient.objects.filter(recipe=recipe).delete()
+        recipe_ingredients = [
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount']
+            )
+            for ingredient in ingredients
+        ]
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
@@ -303,29 +301,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         )
 
 
-class AvatarSerializer(serializers.Serializer):
-    avatar = serializers.CharField()
+class AvatarSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField()
 
-    def validate_avatar(self, value):
-        try:
-            format, imgstr = value.split(';base64,')
-            if format.split('/')[0] != 'data:image':
-                raise serializers.ValidationError(
-                    'Неверный формат изображения'
-                )
-            return ContentFile(base64.b64decode(imgstr), name='avatar.png')
-        except Exception:
-            raise serializers.ValidationError(
-                'Ошибка при обработке изображения'
-            )
-
-    def save(self, **kwargs):
-        user = self.context['request'].user
-        user.avatar.save(
-            self.validated_data['avatar'].name,
-            self.validated_data['avatar'], save=True
-        )
-        return user.avatar.url
+    class Meta:
+        model = User
+        fields = ('avatar',)
 
 
 class PasswordSerializer(serializers.Serializer):

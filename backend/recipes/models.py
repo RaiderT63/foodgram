@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -50,6 +51,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='recipes',
         verbose_name='Создатель'
     )
     name = models.CharField(
@@ -66,10 +68,12 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
+        related_name='recipes',
         verbose_name='Ингредиенты'
     )
     tags = models.ManyToManyField(
         Category,
+        related_name='recipes',
         verbose_name='Теги'
     )
     cooking_time = models.PositiveSmallIntegerField(
@@ -88,6 +92,9 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse("short_link", args=[self.pk])
 
 
 class RecipeIngredient(models.Model):
