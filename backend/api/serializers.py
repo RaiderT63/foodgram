@@ -67,13 +67,6 @@ class IngredientItemSerializer(serializers.ModelSerializer):
         )
 
 
-class RecipeFavoriteSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
@@ -240,7 +233,7 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 class SubscribeSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.IntegerField(read_only=True, default=0)
+    recipes_count = serializers.ReadOnlyField(read_only=True, default=0)
     avatar = serializers.SerializerMethodField()
 
     class Meta:
@@ -309,68 +302,6 @@ class AvatarSerializer(serializers.ModelSerializer):
         fields = ('avatar',)
 
 
-class PasswordSerializer(serializers.Serializer):
-    current_password = serializers.CharField()
-    new_password = serializers.CharField()
-
-    def validate_current_password(self, value):
-        user = self.context['request'].user
-        if not user.check_password(value):
-            raise serializers.ValidationError(
-                'Неверный текущий пароль'
-            )
-        return value
-
-    def save(self, **kwargs):
-        user = self.context['request'].user
-        user.set_password(self.validated_data['new_password'])
-        user.save()
-
-
-class FavoriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FavoriteRecipe
-        fields = ('user', 'recipe')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=FavoriteRecipe.objects.all(),
-                fields=('user', 'recipe'),
-                message='Рецепт уже добавлен в избранное'
-            )
-        ]
-
-    def validate_delete(self, user, recipe):
-        if not FavoriteRecipe.objects.filter(
-            user=user,
-            recipe=recipe
-        ).exists():
-            raise serializers.ValidationError(
-                'Рецепт не найден в избранном'
-            )
-
-
-class ShoppingCartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ShoppingItem
-        fields = ('user', 'recipe')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=ShoppingItem.objects.all(),
-                fields=('user', 'recipe'),
-                message='Рецепт уже добавлен в корзину'
-            )
-        ]
-
-    def validate_delete(self, user, recipe):
-        if not ShoppingItem.objects.filter(
-            user=user,
-            recipe=recipe
-        ).exists():
-            raise serializers.ValidationError(
-                'Рецепт не найден в списке покупок'
-            )
-
-
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSubscription
@@ -389,12 +320,3 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                 'Нельзя подписаться на самого себя'
             )
         return data
-
-    def validate_delete(self, subscriber, author):
-        if not UserSubscription.objects.filter(
-            subscriber=subscriber,
-            author=author
-        ).exists():
-            raise serializers.ValidationError(
-                'Подписка не существует'
-            )
