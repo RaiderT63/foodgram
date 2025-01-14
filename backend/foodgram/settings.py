@@ -23,7 +23,6 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
-    'django_extensions',
     'djoser',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
