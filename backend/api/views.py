@@ -6,7 +6,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (
     AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 )
@@ -24,10 +23,9 @@ from .permissions import IsRecipeAuthorOrReadOnly
 from .serializers import (
     AvatarSerializer, IngredientItemSerializer,
     RecipeCreateUpdateSerializer, RecipeSerializer,
-    RecipeShortSerializer, SubscribeSerializer,
-    SubscriptionSerializer, TagSerializer,
-    WriteFavoriteSerializer, WriteShopingItemSerializer,
-    UserSerializer
+    SubscribeSerializer, SubscriptionSerializer,
+    TagSerializer, WriteFavoriteSerializer,
+    WriteShopingItemSerializer, UserSerializer
 )
 
 User = get_user_model()
