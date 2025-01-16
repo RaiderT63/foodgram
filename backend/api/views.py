@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from djoser.views import UserViewSet as DjoserUserViewSet
 
 from .serializers import (
-    CategorySerializer,
+    TagSerializer,
     RecipeSerializer,
     UserSerializer,
     SubscribeSerializer,
@@ -26,7 +26,7 @@ from .serializers import (
     SubscriptionSerializer,
 )
 from recipes.models import (
-    Category,
+    Tag,
     Ingredient,
     Recipe,
     FavoriteRecipe,
@@ -41,9 +41,9 @@ from .filters import IngredientFilter, RecipeFilter
 User = get_user_model()
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
     pagination_class = None
 
 

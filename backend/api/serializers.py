@@ -6,7 +6,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from recipes.models import (
     Ingredient,
     Recipe,
-    Category,
+    Tag,
     RecipeIngredient,
 )
 from users.models import UserSubscription
@@ -40,10 +40,10 @@ class UserSerializer(serializers.ModelSerializer):
         ).exists()
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Category
+        model = Tag
         fields = (
             'id',
             'name',
@@ -75,7 +75,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    tags = CategorySerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
     ingredients = serializers.SerializerMethodField()
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -119,7 +119,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 class RecipeCreateUpdateSerializer(RecipeSerializer):
     ingredients = RecipeIngredientSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(),
+        queryset=Tag.objects.all(),
         many=True,
     )
     image = Base64ImageField()
@@ -228,8 +228,7 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 class SubscribeSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.ReadOnlyField(read_only=True, default=0)
-    avatar = serializers.SerializerMethodField()
+    recipes_count = serializers.IntegerField(source='recipes.count')
 
     class Meta:
         model = User
@@ -246,9 +245,6 @@ class SubscribeSerializer(serializers.ModelSerializer):
             recipes = recipes[:int(recipes_limit)]
         return RecipeShortSerializer(recipes, many=True).data
 
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
-
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
@@ -257,12 +253,6 @@ class SubscribeSerializer(serializers.ModelSerializer):
             subscriber=user,
             author=obj
         ).exists()
-
-    def get_avatar(self, obj):
-        request = self.context.get('request')
-        if obj.avatar:
-            return request.build_absolute_uri(obj.avatar.url)
-        return None
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):

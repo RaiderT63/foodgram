@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (
-    Category,
+    Tag,
     Ingredient,
     Recipe,
     RecipeIngredient,
@@ -10,8 +10,8 @@ from .models import (
 )
 
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'slug',

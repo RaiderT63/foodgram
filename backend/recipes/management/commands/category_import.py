@@ -2,7 +2,7 @@ from csv import DictReader
 
 from django.core.management.base import BaseCommand
 
-from recipes.models import Category
+from recipes.models import Tag
 
 PATH_CSV = 'data/recipes_tag.csv'
 
@@ -16,12 +16,12 @@ class Command(BaseCommand):
                 encoding='utf-8'
         ) as file:
             categories = [
-                Category(
+                Tag(
                     name=row['name'], slug=row['slug']
                 )
                 for row in DictReader(
                     file, fieldnames=('name', 'slug',)
                 )
             ]
-            Category.objects.bulk_create(categories)
+            Tag.objects.bulk_create(categories)
             self.stdout.write(self.style.SUCCESS('Data imported successfully'))

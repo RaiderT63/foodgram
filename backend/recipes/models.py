@@ -7,7 +7,7 @@ from django.urls import reverse
 User = get_user_model()
 
 
-class Category(models.Model):
+class Tag(models.Model):
     name = models.CharField(
         'Название категории',
         max_length=50,
@@ -22,7 +22,6 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-        db_table = 'category'
 
     def __str__(self):
         return self.title
@@ -72,7 +71,7 @@ class Recipe(models.Model):
         verbose_name='Ингредиенты'
     )
     tags = models.ManyToManyField(
-        Category,
+        Tag,
         related_name='recipes',
         verbose_name='Теги'
     )
@@ -83,18 +82,22 @@ class Recipe(models.Model):
             MaxValueValidator(settings.MAX_VALUE_LIMITS),
         ]
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True,
+    )
 
     class Meta:
         default_related_name = '%(class)ss'
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ['-id']
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.title
 
     def get_absolute_url(self):
-        return reverse("short_link", args=[self.pk])
+        return reverse('short_link', args=[self.pk])
 
 
 class RecipeIngredient(models.Model):
