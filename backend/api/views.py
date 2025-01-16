@@ -1,42 +1,34 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.db.models import Sum, Count
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status
-from rest_framework.exceptions import ValidationError
+from djoser.views import UserViewSet as DjoserUserViewSet
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (
-    IsAuthenticated,
-    AllowAny,
-    IsAuthenticatedOrReadOnly,
+    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 )
 from rest_framework.response import Response
-from djoser.views import UserViewSet as DjoserUserViewSet
 
-from .serializers import (
-    TagSerializer,
-    RecipeSerializer,
-    UserSerializer,
-    SubscribeSerializer,
-    RecipeShortSerializer,
-    RecipeCreateUpdateSerializer,
-    IngredientItemSerializer,
-    AvatarSerializer,
-    SubscriptionSerializer,
-)
 from recipes.models import (
-    Tag,
-    Ingredient,
-    Recipe,
-    FavoriteRecipe,
-    ShoppingItem,
-    RecipeIngredient,
+    FavoriteRecipe, Ingredient, Recipe,
+    RecipeIngredient, ShoppingItem, Tag
 )
+from users.models import UserSubscription
+
+from .filters import IngredientFilter, RecipeFilter
 from .paginations import CustomPagination
 from .permissions import IsRecipeAuthorOrReadOnly
-from users.models import UserSubscription
-from .filters import IngredientFilter, RecipeFilter
+from .serializers import (
+    AvatarSerializer, IngredientItemSerializer,
+    RecipeCreateUpdateSerializer, RecipeSerializer,
+    RecipeShortSerializer, SubscribeSerializer,
+    SubscriptionSerializer, TagSerializer,
+    WriteFavoriteSerializer, WriteShopingItemSerializer,
+    UserSerializer
+)
 
 User = get_user_model()
 
@@ -82,45 +74,42 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @staticmethod
     def _favorite_shopping_cart_logic(
         request,
-        error_message_add,
         pk,
         model,
+        serializer,
     ):
-        recipe = get_object_or_404(Recipe, pk=pk)
+        recipe = get_object_or_404(Recipe, id=pk)
         if request.method == "DELETE":
-            obj = model.objects.filter(
-                recipe=recipe, user=request.user
-            ).first()
-            if not obj:
+            obj, _ = model.objects.filter(
+                recipe=pk, user=request.user
+            ).delete()
+            if obj == 0:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        item, created = model.objects.get_or_create(
-            user=request.user, recipe=recipe
+        serializer = serializer(
+            data={'recipe': recipe.pk, 'user': request.user.pk},
+            context={'request': request}
         )
-        if not created:
-            raise ValidationError(dict(error=error_message_add))
-        return Response(
-            RecipeShortSerializer(recipe).data,
-            status=status.HTTP_201_CREATED,
-        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=("POST", "DELETE"))
     def favorite(self, request, pk):
         return self._favorite_shopping_cart_logic(
             request,
-            error_message_add='Уже есть в избранном',
             pk=pk,
             model=FavoriteRecipe,
+            serializer=WriteFavoriteSerializer,
         )
 
     @action(detail=True, methods=("POST", "DELETE"))
     def shopping_cart(self, request, pk):
         return self._favorite_shopping_cart_logic(
             request,
-            error_message_add='Уже есть в корзине',
             pk=pk,
             model=ShoppingItem,
+            serializer=WriteShopingItemSerializer,
         )
 
     def create_shopping_list(self, ingredients):
@@ -210,8 +199,7 @@ class UserViewSet(DjoserUserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         serializer = AvatarSerializer(data=request.data,)
         serializer.is_valid(raise_exception=True)
-        user.avatar = serializer.validated_data['avatar']
-        user.save()
+        serializer.update(user, serializer.validated_data)
         return Response(
             AvatarSerializer(user).data,
             status=status.HTTP_200_OK
@@ -227,11 +215,11 @@ class UserViewSet(DjoserUserViewSet):
         user = request.user
         author = get_object_or_404(User, pk=id)
         if request.method == 'DELETE':
-            obj = UserSubscription.objects.filter(
+            obj, _ = UserSubscription.objects.filter(
                 subscriber=request.user,
                 author=author
             ).delete()
-            if obj[0] == 0:
+            if obj == 0:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -1,13 +1,11 @@
-from django_filters.rest_framework import (
-    FilterSet,
-    CharFilter,
-    ModelMultipleChoiceFilter,
-    ModelChoiceFilter,
-    BooleanFilter
-)
 from django.contrib.auth import get_user_model
+from django_filters.rest_framework import (
+    BooleanFilter, CharFilter,
+    FilterSet, ModelChoiceFilter,
+    ModelMultipleChoiceFilter
+)
 
-from recipes.models import Recipe, Tag, Ingredient
+from recipes.models import Ingredient, Recipe, Tag
 
 User = get_user_model()
 

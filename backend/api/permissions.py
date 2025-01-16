@@ -1,7 +1,5 @@
 from rest_framework.permissions import (
-    BasePermission,
-    SAFE_METHODS,
-    IsAuthenticated
+    SAFE_METHODS, BasePermission, IsAuthenticated
 )
 
 

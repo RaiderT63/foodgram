@@ -1,13 +1,11 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (
-    Ingredient,
-    Recipe,
-    Tag,
-    RecipeIngredient,
+    Ingredient, FavoriteRecipe, Recipe, RecipeIngredient, ShoppingItem, Tag
 )
 from users.models import UserSubscription
 
@@ -304,4 +302,47 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Нельзя подписаться на самого себя'
             )
+        return data
+
+
+class BaseWriteFavoriteShoping(serializers.ModelSerializer):
+    # def validate(self, data):
+    #     if not Recipe.objects.filter(id=data['recipe'].id).exists():
+    #         error = ValidationError('Рецепт не существует')
+    #         error.status_code = 404
+    #         raise error
+    #     return data
+
+    def to_representation(self, instance):
+        return RecipeShortSerializer(
+            instance.recipe,
+            context=self.context
+        ).data
+
+
+class WriteFavoriteSerializer(BaseWriteFavoriteShoping):
+    class Meta:
+        model = FavoriteRecipe
+        fields = ['recipe', 'user']
+
+    def validate(self, data):
+        # data = super().validated(data)
+        if data['user'].favorite_recipes.filter(
+            recipe=data['recipe']
+        ).exists():
+            raise ValidationError('Рецепт уже в избранном')
+        return data
+
+
+class WriteShopingItemSerializer(BaseWriteFavoriteShoping):
+    class Meta:
+        model = ShoppingItem
+        fields = ['recipe', 'user']
+
+    def validate(self, data):
+        # data = super().validated(data)
+        if data['user'].shopping_items.filter(
+            recipe=data['recipe']
+        ).exists():
+            raise ValidationError('Рецепт уже в корзине')
         return data
