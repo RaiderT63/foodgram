@@ -1,16 +1,13 @@
-FROM python:3.11
+FROM python:3.9-slim
 
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
 RUN pip install --no-cache-dir --upgrade pip
 
-COPY requirements.txt /app/
+COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r app/requirements.txt --no-cache-dir
 
-COPY . /app/
+COPY . .
 
-CMD ["gunicorn", "foodgram.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "foodgram.wsgi", "--bind", "0.0.0.0:8000"]
