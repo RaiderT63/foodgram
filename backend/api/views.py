@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
-from django.http import HttpResponse
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -139,14 +139,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         shopping_list = self.create_shopping_list(ingredients)
 
-        response = HttpResponse(
+        return FileResponse(
             shopping_list,
-            content_type='text/plain'
+            content_type='text/plain',
+            filename='shopping_list.txt',
+            as_attachment=True
         )
-        response['Content-Disposition'] = (
-            'attachment; filename="shopping_list.txt"'
-        )
-        return response
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_short_link(self, request, pk=None):
