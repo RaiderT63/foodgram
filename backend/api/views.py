@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
-from django.http import FileResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.http import FileResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.urls import reverse
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -252,4 +253,6 @@ class UserViewSet(DjoserUserViewSet):
 
 
 def short_link_view(request, pk):
-    return redirect('api:recipes-detail', pk=pk)
+    return HttpResponseRedirect(
+        reverse('api:recipes-detail', kwargs={'pk': pk})
+    )
