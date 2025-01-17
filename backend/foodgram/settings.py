@@ -133,6 +133,10 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://foodgram63.ddns.net',
+]
+
 # constants
 MIN_VALUE_LIMITS = 1
 MAX_VALUE_LIMITS = 32000
