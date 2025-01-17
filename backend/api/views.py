@@ -7,7 +7,7 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
-    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly, SAFE_METHODS
 )
 from rest_framework.response import Response
 
@@ -62,9 +62,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     def get_serializer_class(self):
-        if self.action in ('create', 'partial_update'):
-            return RecipeCreateUpdateSerializer
-        return RecipeSerializer
+        if self.request.method in SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeCreateUpdateSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
