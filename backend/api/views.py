@@ -7,7 +7,7 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
-    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly, SAFE_METHODS
+    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 )
 from rest_framework.response import Response
 
@@ -62,7 +62,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     def get_serializer_class(self):
-        if self.request.method not in SAFE_METHODS:  # ('create', 'partial_update'):
+        if self.action in ('create', 'partial_update'):
             return RecipeCreateUpdateSerializer
         return RecipeSerializer
 
@@ -78,10 +78,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     ):
         recipe = get_object_or_404(Recipe, id=pk)
         if request.method == 'DELETE':
-            obj, _ = model.objects.filter(
+            deleted_objects_count, _ = model.objects.filter(
                 recipe=pk, user=request.user
             ).delete()
-            if obj == 0:
+            if deleted_objects_count == 0:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             return Response(status=status.HTTP_204_NO_CONTENT)
         serializer = serializer(
@@ -164,17 +164,6 @@ class UserViewSet(DjoserUserViewSet):
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers
-        )
-
     @action(
         detail=False,
         methods=['get'],
@@ -213,11 +202,11 @@ class UserViewSet(DjoserUserViewSet):
         user = request.user
         author = get_object_or_404(User, pk=id)
         if request.method == 'DELETE':
-            obj, _ = UserSubscription.objects.filter(
+            deleted_objects_count, _ = UserSubscription.objects.filter(
                 subscriber=request.user,
                 author=author
             ).delete()
-            if obj == 0:
+            if deleted_objects_count == 0:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -225,9 +214,11 @@ class UserViewSet(DjoserUserViewSet):
         serializer = SubscriptionSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
+        annotated_author = User.objects.annotate(
+            recipes_count=Count('recipes')
+        ).get(pk=author.id)
         return_serializer = SubscribeSerializer(
-            author, context={'request': request}
+            annotated_author, context={'request': request}
         )
         return Response(
             return_serializer.data, status=status.HTTP_201_CREATED
