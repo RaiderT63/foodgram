@@ -9,7 +9,7 @@ User = get_user_model()
 
 class Tag(models.Model):
     name = models.CharField(
-        'Название категории',
+        'Название тега',
         max_length=50,
         unique=True
     )
@@ -20,8 +20,8 @@ class Tag(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
 
     def __str__(self):
         return self.title

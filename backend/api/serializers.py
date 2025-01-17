@@ -306,13 +306,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class BaseWriteFavoriteShoping(serializers.ModelSerializer):
-    # def validate(self, data):
-    #     if not Recipe.objects.filter(id=data['recipe'].id).exists():
-    #         error = ValidationError('Рецепт не существует')
-    #         error.status_code = 404
-    #         raise error
-    #     return data
-
     def to_representation(self, instance):
         return RecipeShortSerializer(
             instance.recipe,
@@ -326,7 +319,6 @@ class WriteFavoriteSerializer(BaseWriteFavoriteShoping):
         fields = ['recipe', 'user']
 
     def validate(self, data):
-        # data = super().validated(data)
         if data['user'].favorite_recipes.filter(
             recipe=data['recipe']
         ).exists():
@@ -340,7 +332,6 @@ class WriteShopingItemSerializer(BaseWriteFavoriteShoping):
         fields = ['recipe', 'user']
 
     def validate(self, data):
-        # data = super().validated(data)
         if data['user'].shopping_items.filter(
             recipe=data['recipe']
         ).exists():

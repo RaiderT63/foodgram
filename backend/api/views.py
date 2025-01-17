@@ -7,7 +7,7 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
-    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly, SAFE_METHODS
 )
 from rest_framework.response import Response
 
@@ -62,7 +62,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     def get_serializer_class(self):
-        if self.action in ('create', 'partial_update'):
+        if self.request.method not in SAFE_METHODS:  # ('create', 'partial_update'):
             return RecipeCreateUpdateSerializer
         return RecipeSerializer
 
@@ -77,7 +77,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer,
     ):
         recipe = get_object_or_404(Recipe, id=pk)
-        if request.method == "DELETE":
+        if request.method == 'DELETE':
             obj, _ = model.objects.filter(
                 recipe=pk, user=request.user
             ).delete()
@@ -92,7 +92,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=("POST", "DELETE"))
+    @action(detail=True, methods=('POST', 'DELETE'))
     def favorite(self, request, pk):
         return self._favorite_shopping_cart_logic(
             request,
@@ -101,7 +101,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer=WriteFavoriteSerializer,
         )
 
-    @action(detail=True, methods=("POST", "DELETE"))
+    @action(detail=True, methods=('POST', 'DELETE'))
     def shopping_cart(self, request, pk):
         return self._favorite_shopping_cart_logic(
             request,
