@@ -126,12 +126,7 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
         model = Recipe
         fields = RecipeSerializer.Meta.fields
 
-    def validate(self, data):   
-        if not data.get('image'):
-            raise serializers.ValidationError(
-                {'image': 'Изображение обязательно для рецепта'}
-            )
-
+    def validate(self, data):
         if len(data.get('name', '')) > 256:
             raise serializers.ValidationError({
                 'name': ('Длина названия рецепта не должна '
@@ -195,9 +190,6 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        image = validated_data.get('image', None)
-        if not image:
-            validated_data['image'] = instance.image
         ingredients = validated_data.pop('ingredients')
         self._handle_ingredients(instance, ingredients)
         return super().update(instance, validated_data)
