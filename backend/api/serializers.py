@@ -120,13 +120,13 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
         queryset=Tag.objects.all(),
         many=True,
     )
-    image = Base64ImageField(allow_empty_file=False, required=True)
+    image = Base64ImageField()
 
     class Meta(RecipeSerializer.Meta):
         model = Recipe
         fields = RecipeSerializer.Meta.fields
 
-    def validate(self, data):
+    def validate(self, data):   
         if not data.get('image'):
             raise serializers.ValidationError(
                 {'image': 'Изображение обязательно для рецепта'}
@@ -176,9 +176,7 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
 
         return data
 
-    def _handle_tags_and_ingredients(self, recipe, tags, ingredients):
-        recipe.tags.set(tags)
-
+    def _handle_ingredients(self, recipe, ingredients):
         RecipeIngredient.objects.filter(recipe=recipe).delete()
         recipe_ingredients = [
             RecipeIngredient(
@@ -192,15 +190,16 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
-        self._handle_tags_and_ingredients(recipe, tags, ingredients)
+        self._handle_ingredients(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
-        tags = validated_data.pop('tags', None)
-        ingredients = validated_data.pop('ingredients', None)
-        self._handle_tags_and_ingredients(instance, tags, ingredients)
+        image = validated_data.get('image', None)
+        if not image:
+            validated_data['image'] = instance.image
+        ingredients = validated_data.pop('ingredients')
+        self._handle_ingredients(instance, ingredients)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
