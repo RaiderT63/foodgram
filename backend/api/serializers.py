@@ -120,7 +120,7 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
         queryset=Tag.objects.all(),
         many=True,
     )
-    image = Base64ImageField()
+    image = Base64ImageField(allow_empty_file=False, required=True)
 
     class Meta(RecipeSerializer.Meta):
         model = Recipe
