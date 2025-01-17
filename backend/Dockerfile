@@ -6,7 +6,7 @@ RUN pip install --no-cache-dir --upgrade pip
 
 COPY requirements.txt .
 
-RUN pip install -r app/requirements.txt --no-cache-dir
+RUN pip install -r /app/requirements.txt --no-cache-dir
 
 COPY . .
 
