@@ -63,22 +63,6 @@ class RecipeAdmin(admin.ModelAdmin):
     get_favorite_count.short_description = 'Добавлений в избранное'
 
 
-@admin.register(RecipeIngredient)
-class RecipeIngredientAdmin(admin.ModelAdmin):
-    list_display = (
-        'recipe',
-        'amount',
-        'ingredient',
-    )
-    search_fields = (
-        'ingredient__name',
-    )
-    list_filter = (
-        'recipe',
-        'ingredient',
-    )
-
-
 @admin.register(FavoriteRecipe)
 class FavoriteRecipeAdmin(admin.ModelAdmin):
     list_display = (
