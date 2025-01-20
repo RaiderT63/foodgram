@@ -79,7 +79,7 @@ class FavoriteRecipeAdmin(admin.ModelAdmin):
     )
     search_fields = (
         'user__username',
-        'recipe__title',
+        'recipe__name',
     )
 
 
@@ -91,5 +91,5 @@ class ShoppingItemAdmin(admin.ModelAdmin):
     )
     search_fields = (
         'user__username',
-        'recipe__title',
+        'recipe__name',
     )
