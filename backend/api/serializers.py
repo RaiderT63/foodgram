@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -171,8 +172,15 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
 
         return data
 
+    def validate_image(self, image):
+        if not image:
+            raise serializers.ValidationError(
+                'А картинку то забыли!'
+            )
+        return image
+
+    @transaction.atomic
     def _handle_ingredients(self, recipe, ingredients):
-        RecipeIngredient.objects.filter(recipe=recipe).delete()
         recipe_ingredients = [
             RecipeIngredient(
                 recipe=recipe,
@@ -183,16 +191,20 @@ class RecipeCreateUpdateSerializer(RecipeSerializer):
         ]
         RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
+    @transaction.atomic
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = super().create(validated_data)
         self._handle_ingredients(recipe, ingredients)
         return recipe
 
-    def update(self, instance, validated_data):
+    @transaction.atomic
+    def update(self, recipe, validated_data):
         ingredients = validated_data.pop('ingredients')
-        self._handle_ingredients(instance, ingredients)
-        return super().update(instance, validated_data)
+        recipe.tags.clear()
+        recipe.ingredients.clear()
+        self._handle_ingredients(recipe, ingredients)
+        return super().update(recipe, validated_data)
 
     def to_representation(self, instance):
         return RecipeSerializer(instance, context=self.context).data
