@@ -132,7 +132,7 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return (
-            f'{self.recipe.title}: {self.ingredient.name} — '
+            f'{self.recipe.name}: {self.ingredient.name} — '
             f'{self.amount} {self.ingredient.unit_of_measurement}'
         )
 
@@ -158,7 +158,7 @@ class FavoriteRecipe(models.Model):
 
     def __str__(self):
         return (
-            f'{self.user.username} добавил "{self.recipe.title}" '
+            f'{self.user.username} добавил "{self.recipe.name}" '
             'в избранное'
         )
 
@@ -184,6 +184,6 @@ class ShoppingItem(models.Model):
 
     def __str__(self):
         return (
-            f'{self.user.username} добавил "{self.recipe.title}" '
+            f'{self.user.username} добавил "{self.recipe.name}" '
             'в список покупок'
         )
