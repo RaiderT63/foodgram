@@ -10,6 +10,11 @@ from .models import (
 )
 
 
+class RecipeIngredientInLine(admin.TabularInline):
+    model = RecipeIngredient
+    min_num = 1
+
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = (
@@ -48,6 +53,9 @@ class RecipeAdmin(admin.ModelAdmin):
     )
     filter_horizontal = (
         'tags',
+    )
+    inlines = (
+        RecipeIngredientInLine,
     )
 
     def get_favorite_count(self, obj):
