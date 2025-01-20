@@ -25,7 +25,7 @@ class Tag(models.Model):
         default_related_name = 'tags'
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class Ingredient(models.Model):
