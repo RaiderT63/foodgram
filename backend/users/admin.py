@@ -21,12 +21,10 @@ class CustomUserAdmin(UserAdmin):
         'is_active',
     )
     search_fields = (
-        'email',
-        'username',
-    )
-    list_editable = (
         'first_name',
         'last_name',
+        'email',
+        'username',
     )
     list_filter = (
         'is_staff',

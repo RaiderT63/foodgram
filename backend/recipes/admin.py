@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db import models
 
 from .models import (
     Tag,
@@ -42,11 +43,10 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'author',
-        'get_favorite_count',
+        'favorite_count',
     )
     search_fields = (
         'name',
-        'creator__username',
     )
     list_filter = (
         'tags',
@@ -58,9 +58,16 @@ class RecipeAdmin(admin.ModelAdmin):
         RecipeIngredientInLine,
     )
 
-    def get_favorite_count(self, obj):
-        return obj.favorited_by_users.count()
-    get_favorite_count.short_description = 'Добавлений в избранное'
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related('author')
+            .prefetch_related(
+                'tags', 'ingredients', 'recipeingredients__ingredient'
+            )
+            .annotate(favorite_count=models.Count('favorite_recipes'))
+        )
 
 
 @admin.register(FavoriteRecipe)
